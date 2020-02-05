@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.MemberDao">
+    <select id="findMemberByTelephon" parameterType="string" resultType="member">
+      SELECT * FROM t_member WHERE phoneNumber = #{telephon}
+    </select>
+    <!--添加会员-->
+    <insert id="add" parameterType="member">
+<selectKey keyProperty="id" resultType="int" order="AFTER">
+    SELECT last_insert_id()
+</selectKey>
+        INSERT INTO t_member(fileNumber,name,sex,idCard,phoneNumber,regTime,password,email,birthday,remark)VALUES (#{fileNumber},#{name},#{sex},#{idCard},#{phoneNumber},#{regTime},#{password},#{email},#{birthday},#{remark})
+    </insert>
+
+    <!--本月新增会员-->
+    <select id="findMemberCountByMoth" parameterType="string" resultType="int">
+        SELECT count(*) FROM t_member where regTime &lt;= #{date}
+    </select>
+    <!--今日新增会员数-->
+    <select id="findTodayNewMember" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM t_member WHERE regTime = #{today}
+    </select>
+    <!--总会员数-->
+    <select id="findTotalMember" resultType="int">
+        SELECT COUNT(*) FROM t_member
+    </select>
+    <!--本周新增会员数/本月新增会员数-->
+    <select id="findNewMemberAfterDate" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM t_member WHERE regTime &gt;= #{date}
+    </select>
+    <select id="findMemberCountMonthDate" parameterType="string" resultType="int">
+          select count(1) from t_member where regTime &lt;= #{endDate} and regTime &gt;= #{startDate}
+    </select>
+    <!--获取男女会员数量占比-->
+    <select id="findMemberGender" resultType="map">
+        select count(1) value,(case when t.sex=1 then '男' when t.sex=2 then '女' else '其他' end) name from t_member t GROUP BY t.sex
+    </select>
+    <select id="findMemberAge" resultType="map">
+        SELECT (CASE
+        WHEN a.age BETWEEN 0 AND 18 THEN '0-18岁'
+        WHEN a.age BETWEEN 18 AND 30 THEN '18-30岁'
+        WHEN a.age BETWEEN 31 AND 45 THEN '30-45岁'
+        WHEN a.age &gt;= 45 THEN '45岁以上'
+        END) AS name,
+        COUNT(*) value FROM
+        (SELECT(YEAR (CURDATE())- YEAR ( birthday )- 1+ (DATE_FORMAT( birthday, '%m%d' )&lt;=(DATE_FORMAT( CURDATE(), '%m%d' )))) age FROM t_member) a GROUP BY NAME
+    </select>
+</mapper>

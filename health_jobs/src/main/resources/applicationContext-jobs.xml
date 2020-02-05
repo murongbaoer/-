@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--任务调度类中的@Autowired失效，解决方案-->
+    <!--<context:annotation-config></context:annotation-config>-->
+    <context:component-scan base-package="com.itheima"></context:component-scan>
+    <!-- 注册自定义Job -->
+    <bean id="jobDemo" class="com.itheima.health.job.ClearImgJob"></bean>
+    <!-- 1：创建JobDetail对象,作用是负责通过反射调用指定的Job，注入目标对象，注入目标方法 -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 注入目标对象 -->
+        <property name="targetObject" ref="jobDemo"></property>
+        <!-- 注入目标方法 -->
+        <property name="targetMethod" value="clearImg"></property>
+    </bean>
+    <!-- 2：注册一个触发器，指定任务触发的时间 -->
+    <bean id="trigge" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!-- 注入JobDetail -->
+        <property name="jobDetail" ref="jobDetail"></property>
+        <!-- 指定触发的时间，基于Cron表达式（0 06 18 * * ?表示每天18点06分） -->
+        <property name="cronExpression" value="0 06 18 * * ?"></property>
+    </bean>
+    <!-- 3：注册一个统一的调度工厂，通过这个调度工厂调度任务 -->
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <!-- 注入多个触发器 -->
+        <property name="triggers">
+            <list>
+                <ref bean="trigger2"></ref>
+                <ref bean="trigge"></ref>
+            </list>
+        </property>
+    </bean>
+    <!-- 2号 删除预约信息，ordersetting的-->
+    <!--注册任务策略-->
+    <bean id="clearOrderSettingJop" class="com.itheima.health.job.ClearOrderSettingJop"></bean>
+    <bean id="jobDetail2" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!--任务目标对象-->
+        <!-- 注册自定义Job -->
+        <property name="targetObject" ref="clearOrderSettingJop"></property>
+        <!--任务调用的方法-->
+        <property name="targetMethod" value="ClearOrederSetting"></property>
+        <!--禁用并发处理，多个线程跑同一个任务
+           禁用了就变成单线程 设置concurrent=false
+       -->
+        <property name="concurrent" value="false"></property>
+      </bean>
+    <!--触发器： 调用的时机-->
+    <bean id="trigger2" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <!--每月最后一天凌晨两点 -->
+        <property name="cronExpression" value="0 0 2 L * ?"></property>
+        <!--绑定jobDetail, 触发时调用jobDetail-->
+        <property name="jobDetail" ref="jobDetail2"></property>
+     </bean>
+</beans>

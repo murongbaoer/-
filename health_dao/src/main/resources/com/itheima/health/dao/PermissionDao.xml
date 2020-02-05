@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.PermissionDao">
+        <select id="findPermissionsByRoleId" parameterType="int" resultType="permission">
+           SELECT p.* FROM t_permission p,t_role_permission rp WHERE p.id = rp.permission_id AND rp.role_id = #{roleId}
+        </select>
+    <select id="findAll" resultType="permission">
+        select * from t_permission
+    </select>
+    <insert id="add" parameterType="permission">
+        INSERT INTO t_permission(name,keyword,description) VALUES (#{name},#{keyword},#{description})
+    </insert>
+    <select id="findPage" parameterType="string" resultType="permission">
+        SELECT * FROM t_permission
+            <if test="value!=null and value.length>0">
+                WHERE name LIKE concat('%',#{value},'%') or keyword LIKE concat('%',#{value},'%')
+            </if>
+    </select>
+    <select id="findPermissionAndPermissionCountByRoleId" parameterType="int" resultType="int">
+  SELECT COUNT(*) FROM t_role_permission WHERE permission_id = #{permissionId}
+    </select>
+    <delete id="delete" parameterType="int">
+        DELETE FROM t_permission WHERE id = #{id}
+    </delete>
+    <select id="findById" parameterType="int" resultType="permission">
+         SELECT * FROM t_permission WHERE id = #{id}
+    </select>
+    <update id="edit" parameterType="permission">
+        UPDATE t_permission
+        <set>
+            <if test="name!=null and name.length>0">
+                name =#{name},
+            </if>
+            <if test="keyword!=null and keyword.length>0">
+                keyword =#{keyword},
+            </if>
+            <if test="description!=null and description.length>0">
+                description =#{description}
+            </if>
+        </set>
+        WHERE id =#{id}
+    </update>
+
+</mapper>

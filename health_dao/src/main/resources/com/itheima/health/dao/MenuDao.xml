@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.MenuDao">
+    <!--主菜单添加-->
+        <insert id="add" parameterType="menu">
+            INSERT INTO t_menu(name,linkUrl,path,priority,description,icon,parentMenuId)
+            VALUES (#{name},#{linkUrl},#{path},#{priority},#{description},#{icon},#{parentMenuId})
+        </insert>
+    <!--主菜单查询全部-->
+        <select id="findPage" parameterType="string" resultType="menu">
+            SELECT * FROM t_menu
+                <if test="value!=null and value.length>0">
+                    WHERE linkUrl LIKE concat('%',#{value},'%') or name LIKE concat('%',#{value},'%')
+                </if>
+        </select>
+          <!--根据id查询-->
+    <select id="findById" parameterType="int" resultType="menu">
+        SELECT * from t_menu WHERE id=#{id}
+    </select>
+    <!--编辑保存菜单项-->
+    <update id="edit" parameterType="menu">
+        UPDATE t_menu
+        <set>
+            <if test="name!=null and name.length>0">
+                name = #{name},
+            </if>
+            <if test="linkUrl!=null and linkUrl.length>0">
+                linkUrl = #{linkUrl},
+            </if>
+            <if test="path!=null and path.length>0">
+                path = #{path},
+            </if>
+            <if test="priority!=null">
+                priority = #{priority},
+            </if>
+            <if test="description!=null and description.length>0">
+                description = #{description},
+            </if>
+            <if test="icon!=null and icon.length>0">
+                icon = #{icon},
+            </if>
+            <if test="parentMenuId!=null">
+                parentMenuId = #{parentMenuId}
+            </if>
+            WHERE id = #{id}
+        </set>
+    </update>
+    <!--使用检查组id，查询检查组对应检查项的集合-->
+    <select id="findRoleAndMenuCountByMenuId" parameterType="int" resultType="int">
+       SELECT count(*) FROM t_role_menu WHERE menu_id = #{id}
+    </select>
+    <delete id="delete" parameterType="int">
+       DELETE FROM t_menu WHERE id=#{id}
+    </delete>
+</mapper>

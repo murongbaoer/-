@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.RoleDao">
+
+    <!--使用用户ID，查询角色的集合，通过返回角色信息，以及角色中对应的权限集合-->
+    <resultMap id="roleMap" type="role">
+        <id property="id" column="id"></id> <!--id不能省略，如果省略id属性会被忽略-->
+        <collection property="permissions" column="id"
+                    select="com.itheima.health.dao.PermissionDao.findPermissionsByRoleId"></collection>
+    </resultMap>
+    <select id="findRolesByUserId" parameterType="int" resultMap="roleMap">
+        SELECT r.* FROM t_role r,t_user_role ur WHERE r.id = ur.role_id AND ur.user_id = #{userId}
+    </select>
+    <select id="findPage" parameterType="string" resultType="role">
+        SELECT * from t_role
+        <if test="value!=null and value.length>0">
+            WHERE name LIKE concat('%',#{value},'%') or keyword LIKE concat('%',#{value},'%')
+        </if>
+    </select>
+    <!--新增检查组，同时返回ID，封装到CheckGroup对象中的id属性-->
+    <insert id="add" parameterType="role">
+        <!--selectKey：返回新增id，将id的值封装到CheckGroup中id的属性里
+            resultType="int"：结果类型
+            order="AFTER"：select last_insert_id()语句执行的顺序，在insert语句之后执行
+            keyProperty="id"：封装到checkgroup实体哪个属性中
+        -->
+        <selectKey resultType="int" order="AFTER" keyProperty="id">
+            select last_insert_id()
+        </selectKey>
+        insert into t_role(name,keyword,description) values(#{name},#{keyword},#{description})
+    </insert>
+    <!--向检查组和检查项中间表中添加数据-->
+    <insert id="addRoleAndPermission" parameterType="map">
+        insert into t_role_permission(role_id,permission_id) values(#{roleId},#{permissionId})
+    </insert>
+    <select id="findPermissionIdsByRoleId" parameterType="int" resultType="int">
+        SELECT permission_id FROM t_role_permission WHERE role_id=#{roleId}
+    </select>
+    <!--更新角色项信息-->
+    <update id="edit" parameterType="role">
+    UPDATE t_role
+    <set>
+        <if test="name!=null and name.length>0">
+           name = #{name},
+        </if>
+        <if test="keyword!=null and keyword.length>0">
+           keyword = #{keyword},
+        </if>
+        <if test="description!=null and description.length>0">
+           description = #{description}
+        </if>
+        where id = #{id}
+    </set>
+    </update>
+    <!--使用检查组id，删除角色和权限中间表的数据-->
+    <delete id="deleteRoleAndPermissionByRoleId" parameterType="int">
+        DELETE FROM t_role_permission WHERE role_id =#{role_id}
+    </delete>
+    <!--ID查询角色-->
+    <select id="findById" parameterType="int" resultType="role">
+        SELECT * FROM t_role WHERE id=#{id}
+    </select>
+    <!--使用角色id，查询角色和权限的中间表，判断是否存在数据-->
+    <select id="findRoleAndPermissionCountByPermissionId" parameterType="int" resultType="int">
+         SELECT count(*) FROM t_role_permission WHERE role_id = #{id}
+    </select>
+    <delete id="delete" parameterType="int">
+            DELETE FROM t_role WHERE id=#{id}
+    </delete>
+    <select id="findAll" resultType="role">
+         SELECT * from t_role
+    </select>
+</mapper>

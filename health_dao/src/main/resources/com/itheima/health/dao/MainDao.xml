@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.health.dao.MainDao">
+
+
+    <!--姓名获取整个user-->
+    <select id="findRoleAndMenu" parameterType="string" resultType="com.itheima.health.pojo.User">
+        select u.* from t_user u where u.username = #{username}
+    </select>
+
+    <!--根据userid查询角色-->
+    <select id="findRoleByUser" parameterType="int" resultType="com.itheima.health.pojo.Role">
+        SELECT r.id FROM t_role r ,t_user_role ur WHERE ur.role_id = r.id AND ur.user_id = #{id}
+    </select>
+
+    <!--根据角色id查询菜单-->
+    <select id="findMenuByRole" parameterType="int" resultType="com.itheima.health.pojo.Menu">
+        SELECT m.* FROM t_menu m , t_role_menu rm WHERE rm.menu_id = m.id AND rm.role_id =#{roleId}
+    </select>
+</mapper>
